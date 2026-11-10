@@ -18,6 +18,11 @@
 
     <section>
       <h2>Perto de você</h2>
+      <div class="origem">
+        <label><input type="radio" name="origem" value="gps" checked> Minha localização (GPS)</label>
+        <label><input type="radio" name="origem" value="fixo"> Ponto fixo (ex.: minha casa)</label>
+        <button id="btnFixo" class="sec" type="button">Definir ponto fixo no mapa</button>
+      </div>
       <div class="linha">
         <label for="raio">Raio (km)</label>
         <input id="raio" type="number" min="0.1" step="0.5" value="2">
