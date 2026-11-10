@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escolas públicas de Sousa-PB</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="painel">
+    <header>
+      <h1>Escolas de Sousa</h1>
+      <p>Mapa das escolas públicas de Sousa, Paraíba.</p>
+    </header>
+
+    <section>
+      <h2>Perto de você</h2>
+      <div class="linha">
+        <label for="raio">Raio (km)</label>
+        <input id="raio" type="number" min="0.1" step="0.5" value="2">
+        <button id="btnPerto" class="primario">Buscar</button>
+      </div>
+      <button id="btnVoltar" class="sec" hidden>Voltar a mostrar a área do mapa</button>
+      <ul id="resultados" class="lista"></ul>
+    </section>
+
+    <section>
+      <h2 id="tituloForm">Cadastrar escola</h2>
+      <form id="busca" class="linha">
+        <input id="endereco" placeholder="Ex.: Rua Dr. Pedro Rodrigues" aria-label="Buscar endereço">
+        <button class="sec">Procurar</button>
+      </form>
+      <ul id="geo" class="lista"></ul>
+
+      <form id="form">
+        <input type="hidden" id="id">
+        <label for="nome">Nome</label>
+        <input id="nome" required maxlength="80">
+        <label for="rede">Rede</label>
+        <select id="rede" required><option>Municipal</option><option>Estadual</option><option>Federal</option></select>
+        <label for="etapa">Etapa de ensino</label>
+        <select id="etapa" required>
+          <option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option>
+          <option>Ensino Médio</option><option>Ensino Técnico</option><option>Ensino Superior</option>
+          <option>EJA</option><option>Várias etapas</option>
+        </select>
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" rows="2" placeholder="Endereço, telefone, turnos"></textarea>
+        <p id="posicao" class="dica">Clique no mapa ou escolha um endereço para marcar a posição.</p>
+        <div class="linha">
+          <button class="primario" type="submit" id="btnSalvar">Salvar escola</button>
+          <button class="sec" type="button" id="btnCancelar" hidden>Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+  </aside>
+
+  <main>
+    <div id="map"></div>
+    <div id="aviso" role="status"></div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
