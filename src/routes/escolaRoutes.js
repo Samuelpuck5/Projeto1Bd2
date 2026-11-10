@@ -1,4 +1,3 @@
-// Define as URLs da API (todas começam com /api/escolas)
 const express = require('express');
 const c = require('../controllers/escolaController');
 
