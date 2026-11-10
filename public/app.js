@@ -41,7 +41,7 @@ async function carregarArea() {
   if (modo !== 'area') return;
   const b = map.getBounds();
   const q = new URLSearchParams({ minLng: b.getWest(), minLat: b.getSouth(), maxLng: b.getEast(), maxLat: b.getNorth() });
-  try { desenhar(await api('/pontos?' + q)); } catch (e) { aviso(e.message); }
+  try { desenhar(await api('/escolas?' + q)); } catch (e) { aviso(e.message); }
 }
 let t;
 map.on('moveend', () => { clearTimeout(t); t = setTimeout(carregarArea, 300); });
@@ -62,7 +62,7 @@ function popup(p) {
   ed.onclick = () => editar(p);
   ex.onclick = async () => {
     if (!confirm(`Excluir "${p.nome}"?`)) return;
-    await api('/pontos/' + p.id, { method: 'DELETE' });
+    await api('/escolas/' + p.id, { method: 'DELETE' });
     aviso('Escola excluída'); map.closePopup(); recarregar();
   };
   return el;
@@ -72,14 +72,15 @@ function recarregar() { modo === 'perto' ? buscarPerto() : carregarArea(); }
 
 // ---------- Buscar perto de mim ----------
 async function buscarPerto() {
-  if (!usuario) return aviso('Aguardando sua localização. Permita o acesso no navegador.');
+  const o = origem();
+  if (!o) return aviso(origemFixa() ? 'Defina o ponto fixo no mapa primeiro.' : 'Aguardando sua localização. Permita o acesso no navegador.');
   const raio = parseFloat($('raio').value);
   if (!(raio > 0)) return aviso('Informe um raio maior que zero.');
   modo = 'perto';
-  const pts = await api(`/pontos/proximos?lat=${usuario[0]}&lng=${usuario[1]}&raio=${raio}`);
+  const pts = await api(`/escolas/proximas?lat=${o[0]}&lng=${o[1]}&raio=${raio}`);
   desenhar(pts);
   raioCirculo.clearLayers();
-  const c = L.circle(usuario, { radius: raio * 1000, color: '#0d6b5c', weight: 1, fillOpacity: .06 }).addTo(raioCirculo);
+  const c = L.circle(o, { radius: raio * 1000, color: '#0d6b5c', weight: 1, fillOpacity: .06 }).addTo(raioCirculo);
   map.fitBounds(c.getBounds());
   $('btnVoltar').hidden = false;
   const ul = $('resultados'); ul.innerHTML = '';
@@ -109,7 +110,7 @@ function atualizarPosicao() {
   const { lat, lng } = rascunho.getLatLng();
   $('posicao').textContent = `Posição marcada: ${lat.toFixed(5)}, ${lng.toFixed(5)} (arraste o marcador para ajustar)`;
 }
-map.on('click', (e) => marcar(e.latlng));
+map.on('click', (e) => (escolhendoRef ? definirRef(e.latlng) : marcar(e.latlng)));
 
 // ---------- Geocodificação (Nominatim) ----------
 $('busca').onsubmit = async (e) => {
@@ -122,7 +123,7 @@ $('busca').onsubmit = async (e) => {
   res.forEach((x) => {
     const li = document.createElement('li');
     li.textContent = x.display_name;
-    li.onclick = () => { const ll = L.latLng(+x.lat, +x.lon); map.flyTo(ll, 17); marcar(ll); ul.innerHTML = ''; };
+    li.onclick = () => { const ll = L.latLng(+x.lat, +x.lon); map.flyTo(ll, 17); escolhendoRef ? definirRef(ll) : marcar(ll); ul.innerHTML = ''; };
     ul.appendChild(li);
   });
 };
@@ -135,7 +136,7 @@ $('form').onsubmit = async (e) => {
   const corpo = JSON.stringify({ nome: $('nome').value, rede: $('rede').value, etapa: $('etapa').value, descricao: $('descricao').value, lat, lng });
   const id = $('id').value;
   try {
-    await api(id ? '/pontos/' + id : '/pontos', { method: id ? 'PUT' : 'POST', body: corpo });
+    await api(id ? '/escolas/' + id : '/escolas', { method: id ? 'PUT' : 'POST', body: corpo });
     aviso(id ? 'Escola atualizada' : 'Escola cadastrada');
     limparForm(); recarregar();
   } catch (err) { aviso(err.message); }
@@ -153,3 +154,40 @@ function limparForm() {
   if (rascunho) { map.removeLayer(rascunho); rascunho = null; }
 }
 $('btnCancelar').onclick = limparForm;
+
+// ---------- Ponto fixo de referência (ex.: casa) ----------
+let refFixo = null, refMarker = null, escolhendoRef = false;
+const origemFixa = () => document.querySelector('input[name=origem]:checked').value === 'fixo';
+const origem = () => (origemFixa() ? refFixo : usuario);
+
+function desenharRef() {
+  if (refMarker) refMarker.setLatLng(refFixo);
+  else {
+    refMarker = L.marker(refFixo, { draggable: true, icon: L.divIcon({ className: 'ref-pin', iconSize: [18, 18] }) })
+      .addTo(map).bindTooltip('Ponto fixo (arraste para ajustar)');
+    refMarker.on('dragend', () => definirRef(refMarker.getLatLng()));
+  }
+}
+function definirRef(ll) {
+  refFixo = [ll.lat, ll.lng];
+  try { localStorage.setItem('refFixo', JSON.stringify(refFixo)); } catch {}
+  desenharRef();
+  escolhendoRef = false; $('btnFixo').textContent = 'Definir ponto fixo no mapa';
+  document.querySelector('input[name=origem][value=fixo]').checked = true;
+  aviso('Ponto fixo definido. Agora clique em Buscar.');
+}
+$('btnFixo').onclick = () => {
+  escolhendoRef = !escolhendoRef;
+  $('btnFixo').textContent = escolhendoRef ? 'Cancelar (clique no mapa ou busque um endereço)' : 'Definir ponto fixo no mapa';
+  if (escolhendoRef) aviso('Navegue até o local e clique no mapa.');
+};
+document.querySelectorAll('input[name=origem]').forEach((r) => (r.onchange = () => {
+  if (origemFixa() && refFixo) map.flyTo(refFixo, 15);
+  else if (!origemFixa() && usuario) map.flyTo(usuario, 15);
+}));
+
+// restaura o ponto fixo salvo neste navegador
+try {
+  const salvo = JSON.parse(localStorage.getItem('refFixo'));
+  if (Array.isArray(salvo)) { refFixo = salvo; desenharRef(); document.querySelector('input[name=origem][value=fixo]').checked = true; }
+} catch {}

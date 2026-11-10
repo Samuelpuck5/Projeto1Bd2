@@ -2,8 +2,8 @@
   "name": "escolas-sousa",
   "version": "1.0.0",
   "description": "CRUD de escolas públicas de Sousa-PB com PostGIS, Leaflet e Node.js",
-  "main": "server.js",
-  "scripts": { "start": "node server.js", "dev": "node --watch server.js" },
+  "main": "src/server.js",
+  "scripts": { "start": "node src/server.js", "dev": "node --watch src/server.js" },
   "engines": { "node": ">=18" },
   "dependencies": {
     "cors": "^2.8.5",
