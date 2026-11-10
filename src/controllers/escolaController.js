@@ -6,7 +6,7 @@ const COLS = `id, nome, rede, etapa, descricao,
 
 const num = (v) => (v === undefined || v === '' ? NaN : Number(v));
 
-// Captura erros de funções async e responde 500
+// erros de funções async e pa responde 500
 const wrap = (fn) => (req, res) => fn(req, res).catch((e) => {
   console.error(e);
   res.status(500).json({ erro: 'Erro interno do servidor' });
