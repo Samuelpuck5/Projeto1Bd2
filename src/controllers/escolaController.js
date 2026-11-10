@@ -1,7 +1,6 @@
-// Lógica de salvar/buscar escolas no banco
 const pool = require('../config/db');
 
-// lat/lng são extraídos do objeto geography só para enviar ao frontend
+// lat/lng 
 const COLS = `id, nome, rede, etapa, descricao,
   ST_Y(geom::geometry) AS lat, ST_X(geom::geometry) AS lng`;
 
