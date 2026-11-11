@@ -2,14 +2,14 @@ const $ = (id) => document.getElementById(id);
 const esc = (s = '') => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // ---------- Mapa ----------
-const map = L.map('map').setView([-6.7597, -38.2281], 13); // Sousa-PB até a geolocalização responder
+const map = L.map('map').setView([-6.7597, -38.2281], 13); //começa de Sousa-PB
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19, attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
 const camada = L.layerGroup().addTo(map);   // pontos do banco
 const raioCirculo = L.layerGroup().addTo(map);
-let usuario = null, rascunho = null, modo = 'area'; // modo: 'area' | 'perto'
+let usuario = null, rascunho = null, modo = 'area';
 
 function aviso(msg) {
   const el = $('aviso'); el.textContent = msg; el.classList.add('on');
@@ -24,7 +24,7 @@ async function api(url, opts = {}) {
   return dados;
 }
 
-// ---------- Geolocalização do navegador ----------
+// ---------- Geolocalização ----------
 navigator.geolocation?.getCurrentPosition(
   (pos) => {
     usuario = [pos.coords.latitude, pos.coords.longitude];
@@ -36,7 +36,7 @@ navigator.geolocation?.getCurrentPosition(
   { enableHighAccuracy: true, timeout: 10000 }
 );
 
-// ---------- Carregar só a área visível ----------
+// ---------- área visível ----------
 async function carregarArea() {
   if (modo !== 'area') return;
   const b = map.getBounds();
@@ -70,7 +70,7 @@ function popup(p) {
 
 function recarregar() { modo === 'perto' ? buscarPerto() : carregarArea(); }
 
-// ---------- Buscar perto de mim ----------
+// ----------perto de mim ----------
 async function buscarPerto() {
   const o = origem();
   if (!o) return aviso(origemFixa() ? 'Defina o ponto fixo no mapa primeiro.' : 'Aguardando sua localização. Permita o acesso no navegador.');
@@ -112,7 +112,7 @@ function atualizarPosicao() {
 }
 map.on('click', (e) => (escolhendoRef ? definirRef(e.latlng) : marcar(e.latlng)));
 
-// ---------- Geocodificação (Nominatim) ----------
+// ---------- Nominatim ----------
 $('busca').onsubmit = async (e) => {
   e.preventDefault();
   const q = $('endereco').value.trim(); if (!q) return;
@@ -155,7 +155,7 @@ function limparForm() {
 }
 $('btnCancelar').onclick = limparForm;
 
-// ---------- Ponto fixo de referência (ex.: casa) ----------
+// ---------- Ponto fixo de referência ----------
 let refFixo = null, refMarker = null, escolhendoRef = false;
 const origemFixa = () => document.querySelector('input[name=origem]:checked').value === 'fixo';
 const origem = () => (origemFixa() ? refFixo : usuario);
