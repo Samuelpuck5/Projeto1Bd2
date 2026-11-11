@@ -12,7 +12,7 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((e) => {
   res.status(500).json({ erro: 'Erro interno do servidor' });
 });
 
-// READ: somente escolas dentro da área visível (bounding box)
+// READ: somente escolas dentro da área visível
 exports.listarPorArea = wrap(async (req, res) => {
   const [minLng, minLat, maxLng, maxLat] =
     ['minLng', 'minLat', 'maxLng', 'maxLat'].map((k) => num(req.query[k]));
